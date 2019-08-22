@@ -15,6 +15,7 @@ import random
 from typing import NamedTuple, Union, Any, Sequence
 
 import util
+from cs188.my_utils import getIndexOfMax
 from cs188.p2_multiagent.game import Game, AgentState
 from cs188.p2_multiagent.pacman import GameState
 
@@ -141,14 +142,6 @@ class MultiAgentSearchAgent(Agent):
 class ScoredAction(NamedTuple):
     score: Union[int, float]
     action: Any
-
-
-def getIndexOfMax(values: Sequence, default=-1):
-    return max(range(len(values)), key=values.__getitem__, default=default)
-
-
-def getIndexOfMin(values: Sequence, default=-1):
-    return min(range(len(values)), key=values.__getitem__, default=default)
 
 
 class MinimaxAgent(MultiAgentSearchAgent):
@@ -295,10 +288,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             return max(scores)
         else:  # ghost turn
             return sum(scores) / len(legalActions)
-
-
-def avg(nums):
-    return sum(nums) / len(nums)
 
 
 def betterEvaluationFunction(state: GameState):
