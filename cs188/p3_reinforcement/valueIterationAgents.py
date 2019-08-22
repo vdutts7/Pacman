@@ -159,7 +159,7 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         discount factor.
     """
 
-    def __init__(self, mdp, discount=0.9, iterations=1000):
+    def __init__(self, mdp: MarkovDecisionProcess, discount=0.9, iterations=1000):
         """
           Your cyclic value iteration agent should take an mdp on
           construction, run the indicated number of iterations,
@@ -179,6 +179,26 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        mdp = self.mdp
+        discount = self.discount
+        states = mdp.getStates()
+        policy = dict()
+        values = self.values
+        for k in range(self.iterations):
+            state = states[k % len(states)]
+            possibleActions = mdp.getPossibleActions(state)
+            if not possibleActions:
+                continue
+            else:
+                qValues = [
+                    _computeQValueFromValues(mdp, values, discount, state, action)
+                    for action in possibleActions
+                ]
+                maxActionIndex = getIndexOfMax(qValues)
+                values[state] = qValues[maxActionIndex]
+                policy[state] = possibleActions[maxActionIndex]
+        self.values = values
+        self.policy = policy
 
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
