@@ -12,8 +12,6 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-import random
-
 class MarkovDecisionProcess:
 
     def getStates(self):
