@@ -24,11 +24,27 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
+from collections import defaultdict
+from typing import Dict
 
-
-import util
+from cs188.my_utils import getIndexOfMax
+from cs188.p3_reinforcement.mdp import MarkovDecisionProcess
 
 from learningAgents import ValueEstimationAgent
+
+
+def _computeQValueFromValues(
+        mdp: MarkovDecisionProcess,
+        values: Dict, discount: float,
+        state, action):
+    """
+    $ Run a step of Q-value iteration: it computes Q[k+1](s, a) given
+    the last computed values v[k].
+    """
+    return sum(
+        prob * (mdp.getReward(state, action, nextState) + discount * values[nextState])
+        for nextState, prob in mdp.getTransitionStatesAndProbs(state, action)
+    )
 
 
 class ValueIterationAgent(ValueEstimationAgent):
@@ -41,7 +57,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         discount factor.
     """
 
-    def __init__(self, mdp, discount=0.9, iterations=100):
+    def __init__(self, mdp: MarkovDecisionProcess, discount=0.9, iterations=100):
         """
           Your value iteration agent should take an mdp on
           construction, run the indicated number of iterations
@@ -57,38 +73,70 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = util.Counter()  # A Counter is a dict with default 0
+        self.values = defaultdict(int)   # § don't need util.Counter
+        self.policy = dict()             # § cached policy
         self.runValueIteration()
 
     def runValueIteration(self):
-        # Write value iteration code here
+        """
+        § Runs value iteration for self.iterations iterations:
+
+            v[k](s) = max[a] Q[k](s, a)
+            Q[k+1](s, a) = sum[s'] T(s, a, s') * [r(s, a, s') + discount*v[k](s')]
+
+        and returns the resulting policy.
+        """
         "*** YOUR CODE HERE ***"
+        mdp = self.mdp
+        discount = self.discount
+        states = mdp.getStates()
+        policy = dict()
+        prevValues = defaultdict(int)
+        currValues = self.values
+        for k in range(self.iterations):
+            prevValues, currValues = currValues, prevValues
+            for state in states:
+                possibleActions = mdp.getPossibleActions(state)
+                if not possibleActions:
+                    currValues[state] = 0   # $ we could just "continue"
+                else:
+                    qValues = [
+                        _computeQValueFromValues(mdp, prevValues, discount, state, action)
+                        for action in possibleActions
+                    ]
+                    maxActionIndex = getIndexOfMax(qValues)
+                    currValues[state] = qValues[maxActionIndex]
+                    policy[state] = possibleActions[maxActionIndex]
+        self.values = currValues
+        self.policy = policy
 
     def getValue(self, state):
         """
-          Return the value of the state (computed in __init__).
+        Return the value of the state (computed in __init__).
         """
         return self.values[state]
 
     def computeQValueFromValues(self, state, action):
         """
-          Compute the Q-value of action in state from the
-          value function stored in self.values.
+        Compute the Q-value of action in state from the
+        value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # § We could cache Q-values as well
+        return _computeQValueFromValues(
+            self.mdp, self.values, self.discount, state, action)
 
     def computeActionFromValues(self, state):
         """
-          The policy is the best action in the given state
-          according to the values currently stored in self.values.
+        The policy is the best action in the given state
+        according to the values currently stored in self.values.
 
-          You may break ties any way you see fit.  Note that if
-          there are no legal actions, which is the case at the
-          terminal state, you should return None.
+        You may break ties any way you see fit.  Note that if
+        there are no legal actions, which is the case at the
+        terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.policy.get(state)
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
