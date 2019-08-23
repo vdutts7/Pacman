@@ -25,15 +25,16 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Any, Set, Tuple
 
 from cs188.my_utils import getIndexOfMax
+from cs188.p3_reinforcement import util
 from cs188.p3_reinforcement.mdp import MarkovDecisionProcess
 
 from learningAgents import ValueEstimationAgent
 
 
-def _computeQValueFromValues(
+def _computeQValue(
         mdp: MarkovDecisionProcess,
         values: Dict, discount: float,
         state, action):
@@ -47,16 +48,40 @@ def _computeQValueFromValues(
     )
 
 
+def _computeQValues(
+        mdp: MarkovDecisionProcess,
+        values: Dict, discount: float,
+        state):
+    return [
+        (_computeQValue(mdp, values, discount, state, action), action)
+        for action in mdp.getPossibleActions(state)
+    ]
+
+
+def _computeMaxQValue(
+        mdp: MarkovDecisionProcess,
+        values: Dict, discount: float,
+        state) -> Tuple[float, Tuple]:
+    """
+    Returns the max Q-value along with all the corresponding actions (usually one).
+    """
+    qValues = _computeQValues(mdp, values, discount, state)
+    if not qValues:
+        return 0, ()
+    maxQValue, _ = max(qValues)
+    maxActions = tuple(action for qValue, action in qValues if qValue == maxQValue)
+    return maxQValue, maxActions
+
+
 class ValueIterationAgent(ValueEstimationAgent):
     """
-        * Please read learningAgents.py before reading this.*
+    * Please read learningAgents.py before reading this.*
 
-        A ValueIterationAgent takes a Markov decision process
-        (see mdp.py) on initialization and runs value iteration
-        for a given number of iterations using the supplied
-        discount factor.
+    A ValueIterationAgent takes a Markov decision process
+    (see mdp.py) on initialization and runs value iteration
+    for a given number of iterations using the supplied
+    discount factor.
     """
-
     def __init__(self, mdp: MarkovDecisionProcess, discount=0.9, iterations=100):
         """
           Your value iteration agent should take an mdp on
@@ -73,8 +98,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = defaultdict(int)   # § don't need util.Counter
-        self.policy = dict()             # § cached policy
+        self.values = defaultdict(float)   #§ don't need util.Counter
+        self.policy = None                 #§ cached policy
         self.runValueIteration()
 
     def runValueIteration(self):
@@ -90,25 +115,18 @@ class ValueIterationAgent(ValueEstimationAgent):
         mdp = self.mdp
         discount = self.discount
         states = mdp.getStates()
-        policy = dict()
         prevValues = defaultdict(int)
         currValues = self.values
         for k in range(self.iterations):
             prevValues, currValues = currValues, prevValues
             for state in states:
-                possibleActions = mdp.getPossibleActions(state)
-                if not possibleActions:
-                    currValues[state] = 0   # $ we could just "continue"
+                qValues = _computeQValues(mdp, prevValues, discount, state)
+                if not qValues:
+                    currValues[state] = 0
                 else:
-                    qValues = [
-                        _computeQValueFromValues(mdp, prevValues, discount, state, action)
-                        for action in possibleActions
-                    ]
-                    maxActionIndex = getIndexOfMax(qValues)
-                    currValues[state] = qValues[maxActionIndex]
-                    policy[state] = possibleActions[maxActionIndex]
+                    maxQValue = max(qValues)[0]
+                    currValues[state] = maxQValue
         self.values = currValues
-        self.policy = policy
 
     def getValue(self, state):
         """
@@ -122,8 +140,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        # § We could cache Q-values as well
-        return _computeQValueFromValues(
+        #§ We could cache Q-values as well
+        return _computeQValue(
             self.mdp, self.values, self.discount, state, action)
 
     def computeActionFromValues(self, state):
@@ -136,7 +154,12 @@ class ValueIterationAgent(ValueEstimationAgent):
         terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        return self.policy.get(state)
+        if self.policy is None:
+            self.policy = policy = dict()
+            for state in self.mdp.getStates():
+                qValues = _computeQValues(self.mdp, self.values, self.discount, state)
+                policy[state] = max(qValues)[1] if qValues else None
+        return self.policy[state]
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
@@ -180,25 +203,16 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
         mdp = self.mdp
-        discount = self.discount
         states = mdp.getStates()
-        policy = dict()
-        values = self.values
         for k in range(self.iterations):
             state = states[k % len(states)]
             possibleActions = mdp.getPossibleActions(state)
             if not possibleActions:
                 continue
             else:
-                qValues = [
-                    _computeQValueFromValues(mdp, values, discount, state, action)
-                    for action in possibleActions
-                ]
-                maxActionIndex = getIndexOfMax(qValues)
-                values[state] = qValues[maxActionIndex]
-                policy[state] = possibleActions[maxActionIndex]
-        self.values = values
-        self.policy = policy
+                qValues = _computeQValues(mdp, self.values, self.discount, state)
+                maxQValue = max(qValues)[0]
+                self.values[state] = maxQValue
 
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
