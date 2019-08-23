@@ -217,21 +217,60 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
-        * Please read learningAgents.py before reading this.*
+    * Please read learningAgents.py before reading this.*
 
-        A PrioritizedSweepingValueIterationAgent takes a Markov decision process
-        (see mdp.py) on initialization and runs prioritized sweeping value iteration
-        for a given number of iterations using the supplied parameters.
+    A PrioritizedSweepingValueIterationAgent takes a Markov decision process
+    (see mdp.py) on initialization and runs prioritized sweeping value iteration
+    for a given number of iterations using the supplied parameters.
     """
 
     def __init__(self, mdp, discount=0.9, iterations=100, theta=1e-5):
         """
-          Your prioritized sweeping value iteration agent should take an mdp on
-          construction, run the indicated number of iterations,
-          and then act according to the resulting policy.
+        Your prioritized sweeping value iteration agent should take an mdp on
+        construction, run the indicated number of iterations,
+        and then act according to the resulting policy.
         """
         self.theta = theta
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        states = self.mdp.getStates()
+        predecessors = self._getPredecessors(self.mdp)
+
+        queue = util.PriorityQueue()
+        for state in states:
+            qValues = _computeQValues(
+                self.mdp, self.values, self.discount, state)
+            if not qValues:
+                continue
+            maxQValue = max(qValues)[0]
+            absError = abs(self.values[state] - maxQValue)
+            queue.push(state, -absError)
+
+        for t in range(self.iterations):
+            if queue.isEmpty():
+                break
+            state = queue.pop()
+            self.values[state] = _computeMaxQValue(
+                self.mdp, self.values, self.discount, state)[0]
+            for predecessor in predecessors[state]:
+                qValues = _computeQValues(
+                    self.mdp, self.values, self.discount, predecessor)
+                if not qValues:
+                    continue
+                maxQValue = max(qValues)[0]
+                absError = abs(self.values[predecessor] - maxQValue)
+                if absError > self.theta:
+                    queue.update(predecessor, -absError)
+
+    @staticmethod
+    def _getPredecessors(mdp: MarkovDecisionProcess) -> Dict[Any, Set]:
+        states = mdp.getStates()
+        predecessors = {s: set() for s in states}
+        for state in states:
+            for action in mdp.getPossibleActions(state):
+                for successor, prob in mdp.getTransitionStatesAndProbs(state, action):
+                    if prob > 0:
+                        predecessors[successor].add(state)
+        return predecessors
