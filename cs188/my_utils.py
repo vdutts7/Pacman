@@ -1,7 +1,7 @@
 """
 Utility functions for all projects.
 """
-from typing import Sequence, Dict
+from typing import Sequence
 
 
 def avg(nums):

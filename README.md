@@ -6,7 +6,16 @@ at the UC Berkeley.
 
 I'm using the material from Fall 2018 (https://inst.eecs.berkeley.edu/~cs188/fa18/).
 
-The output of the auto-grader is saved in each project folder as `autograder.out`.
+Each project has his own folder. The output of the auto-grader for each project
+is saved as `autograder.out` inside the corresponding folder.
+
+I added a `setup.py` file and installed the root folder as a package (in editable mode) with 
+
+    pip install -e . 
+    
+I did it for two reasons: 1) it allows me import code from other projects without 
+problems; 2) it improves the integration with my IDE (PyCharm).
+
 
 ### Project 1 - Graph search - Implementation Notes
 
