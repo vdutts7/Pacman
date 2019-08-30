@@ -58,12 +58,13 @@ def _computeQValues(
     ]
 
 
-def _computeMaxQValue(
+def _computeValueAndGreedyActions(
         mdp: MarkovDecisionProcess,
         values: Dict, discount: float,
         state) -> Tuple[float, Tuple]:
     """
-    Returns the max Q-value along with all the corresponding actions (usually one).
+    Returns the value of a state (the max_a Q(s, a)) and the greedy action(s)
+    (argmax_a Q(s, a)).
     """
     qValues = _computeQValues(mdp, values, discount, state)
     if not qValues:
@@ -81,6 +82,10 @@ class ValueIterationAgent(ValueEstimationAgent):
     (see mdp.py) on initialization and runs value iteration
     for a given number of iterations using the supplied
     discount factor.
+
+    #§ This class could be computed more efficiently, even without
+    #§ storing all Q-values in memory, just by keeping track of the
+    #§ optimal action in a state when updating its value.
     """
     def __init__(self, mdp: MarkovDecisionProcess, discount=0.9, iterations=100):
         """
@@ -140,7 +145,6 @@ class ValueIterationAgent(ValueEstimationAgent):
         value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        #§ We could cache Q-values as well
         return _computeQValue(
             self.mdp, self.values, self.discount, state, action)
 
@@ -154,6 +158,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
+        #§ Note: the policy could be computed
         if self.policy is None:
             self.policy = policy = dict()
             for state in self.mdp.getStates():
@@ -238,30 +243,31 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         states = self.mdp.getStates()
         predecessors = self._getPredecessors(self.mdp)
 
-        queue = util.PriorityQueue()
+        queue = util.PriorityQueue()   #§ min priority queue
         for state in states:
             qValues = _computeQValues(
                 self.mdp, self.values, self.discount, state)
             if not qValues:
                 continue
-            maxQValue = max(qValues)[0]
-            absError = abs(self.values[state] - maxQValue)
-            queue.push(state, -absError)
+            new_predecessor_value = max(qValues)[0]
+            absError = abs(self.values[state] - new_predecessor_value)
+            queue.push(state, -absError)   #§ bigger the error, higher the priority
 
         for t in range(self.iterations):
             if queue.isEmpty():
                 break
             state = queue.pop()
-            self.values[state] = _computeMaxQValue(
+            self.values[state] = _computeValueAndGreedyActions(
                 self.mdp, self.values, self.discount, state)[0]
             for predecessor in predecessors[state]:
                 qValues = _computeQValues(
                     self.mdp, self.values, self.discount, predecessor)
                 if not qValues:
                     continue
-                maxQValue = max(qValues)[0]
-                absError = abs(self.values[predecessor] - maxQValue)
+                new_predecessor_value = max(qValues)[0]
+                absError = abs(self.values[predecessor] - new_predecessor_value)
                 if absError > self.theta:
+                    #§ bigger the error, higher the priority
                     queue.update(predecessor, -absError)
 
     @staticmethod
