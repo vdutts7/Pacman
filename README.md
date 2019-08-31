@@ -1,20 +1,30 @@
-## Projects of the "Artificial Intelligence" course (CS188, UC Berkeley)
+## Projects of the "Artificial Intelligence" course (CS 188, UC Berkeley)
 
 This repository contains my solutions to the projects of the course 
 of "Artificial Intelligence" (CS188) taught by Pieter Abbeel and Dan Klein
-at the UC Berkeley. 
+at the UC Berkeley. I'm using the material from 
+[Fall 2018](https://inst.eecs.berkeley.edu/~cs188/fa18/).
 
-I'm using the material from Fall 2018 (https://inst.eecs.berkeley.edu/~cs188/fa18/).
+- [x] Project 1 - Search
+- [x] Project 2 - Multi-agent Search
+- [x] Project 3 - MDPs and Reinforcement Learning 
+- [ ] Project 4 - Ghostbusters
+- [ ] Project 5 - Machine learning 
 
-Each project has his own folder. The output of the auto-grader for each project
-is saved as `autograder.out` inside the corresponding folder.
+#### Notes
+- Each project has his own folder. 
+The output of the auto-grader for each project is saved as `autograder.out` inside the corresponding folder.
 
-I added a `setup.py` file and installed the root folder as a package (in editable mode) with 
+- I added a `setup.py` file and installed the root folder as a package (in editable mode) with 
 
-    pip install -e . 
+        pip install -e . 
     
-I did it for two reasons: 1) it allows me import code from other projects without 
-problems; 2) it improves the integration with my IDE (PyCharm).
+    I did it for not having import issues when importing stuff from past project (and
+    because PyCharm is happier this way).
+
+- For the sake of clarity, my additional comments in the code starts with 
+the character `§`. I started doing this when I wrote in sections not meant
+to written by the student, but I then began doing this for all comments...
 
 
 ### Project 1 - Graph search - Implementation Notes
@@ -68,3 +78,16 @@ are cached in a dictionary to save computation.
 
 In the auto-grading problem, the number of expanded nodes using the above heuristic (719) was way less than the maximum 
 required for the maximum score (7000).
+
+
+### Project 3 - MDPs and Reinforcement Learning
+As an extra exercise, I wrote an additional feature extractor for PacMan called 
+`CustomExtractor` that is a slightly modified version of the provided `SimpleExtractor`;
+it just encourages the agent to eat adjacent scared ghosts instead of avoiding them as 
+they were not scared. Of course, this alone increases a lot the average score. 
+
+For fitting and evaluating an agent using `CustomExtractor` on `mediumClassic`
+maze, run:
+
+    python pacman.py -p ApproximateQAgent -a extractor=CustomExtractor -x 50 -n 60 -l mediumClassic 
+
