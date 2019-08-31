@@ -19,12 +19,12 @@ The output of the auto-grader for each project is saved as `autograder.out` insi
 
         pip install -e . 
     
-    I did it for not having import issues when importing stuff from past project (and
+    I did it for not having import issues when importing stuff from past projects (and
     because PyCharm is happier this way).
 
 - For the sake of clarity, my additional comments in the code starts with 
 the character `§`. I started doing this when I wrote in sections not meant
-to written by the student, but I then began doing this for all comments...
+to be written by the student, but I then began doing this for all comments...
 
 
 ### Project 1 - Graph search - Implementation Notes
