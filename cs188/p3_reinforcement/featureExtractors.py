@@ -14,8 +14,12 @@
 
 "Feature extractors for Pacman game states"
 
-from game import Directions, Actions
 import util
+from game import Actions
+
+from cs188.p1_search.searchAgents import mazeDistance
+from cs188.p3_reinforcement.pacman import GameState
+
 
 class FeatureExtractor:
     def getFeatures(self, state, action):
@@ -26,11 +30,13 @@ class FeatureExtractor:
         """
         util.raiseNotDefined()
 
+
 class IdentityExtractor(FeatureExtractor):
     def getFeatures(self, state, action):
         feats = util.Counter()
-        feats[(state,action)] = 1.0
+        feats[(state, action)] = 1.0
         return feats
+
 
 class CoordinateExtractor(FeatureExtractor):
     def getFeatures(self, state, action):
@@ -40,6 +46,7 @@ class CoordinateExtractor(FeatureExtractor):
         feats['y=%d' % state[0]] = 1.0
         feats['action=%s' % action] = 1.0
         return feats
+
 
 def closestFood(pos, food, walls):
     """
@@ -59,9 +66,10 @@ def closestFood(pos, food, walls):
         # otherwise spread out from the location to its neighbours
         nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
         for nbr_x, nbr_y in nbrs:
-            fringe.append((nbr_x, nbr_y, dist+1))
+            fringe.append((nbr_x, nbr_y, dist + 1))
     # no food found
     return None
+
 
 class SimpleExtractor(FeatureExtractor):
     """
@@ -88,10 +96,60 @@ class SimpleExtractor(FeatureExtractor):
         next_x, next_y = int(x + dx), int(y + dy)
 
         # count the number of ghosts 1-step away
-        features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
+        features["#-of-ghosts-1-step-away"] = sum(
+            (next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
 
         # if there is no danger of ghosts then add the food feature
         if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
+            features["eats-food"] = 1.0
+
+        dist = closestFood((next_x, next_y), food, walls)
+        if dist is not None:
+            # make the distance a number less than one otherwise the update
+            # will diverge wildly
+            features["closest-food"] = float(dist) / (walls.width * walls.height)
+        features.divideAll(10.0)
+        return features
+
+
+def int_tuple(t):
+    return tuple(map(int, t))
+
+
+class CustomExtractor(FeatureExtractor):
+    """
+    § My custom extractor based on SimpleExtractor. It just adds the ability
+    § to recognize that the colliding ghost is scared or not: if it's scared
+    § the feature value is 1.0, otherwise -1.0.
+    """
+    def getFeatures(self, state: GameState, action):
+        # extract the grid of food and wall locations and get the ghost locations
+        food = state.getFood()
+        walls = state.getWalls()
+        ghosts = state.getGhostStates()
+
+        features = util.Counter()
+
+        features["bias"] = 1.0
+
+        # compute the location of pacman after he takes the action
+        x, y = state.getPacmanPosition()
+        dx, dy = Actions.directionToVector(action)
+        next_x, next_y = int(x + dx), int(y + dy)
+
+        def sign(ghost):
+            return 1 if ghost.scaredTimer > 0 else -1
+
+        #§ In a normal maze/game, it's extremely unlikely that multiple ghosts
+        #§ and pacman are all in the same position, so this sum should end up
+        #§ being in {-1, 0, 1}
+        features["close-ghost"] = sum(
+            sign(g) for g in ghosts
+            if (next_x, next_y) in Actions.getLegalNeighbors(g.getPosition(), walls)
+        )
+
+        # if there is no danger of ghosts then add the food feature
+        if features["close-ghost"] >= 0 and food[next_x][next_y]:
             features["eats-food"] = 1.0
 
         dist = closestFood((next_x, next_y), food, walls)
