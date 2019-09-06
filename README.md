@@ -12,14 +12,14 @@ at the UC Berkeley. I'm using the material from
 - [ ] Project 5 - Machine learning 
 
 #### Notes
-- Each project has his own folder. 
+- Each project has its own folder. 
 The output of the auto-grader for each project is saved as `autograder.out` inside the corresponding folder.
 
 - I added a `setup.py` file and installed the root folder as a package (in editable mode) with 
 
         pip install -e . 
     
-    I did it for not having import issues when importing stuff from past projects (and
+    I did it for not having import issues when importing stuff between projects (and
     because PyCharm is happier this way).
 
 - For the sake of clarity, my additional comments in the code starts with 
