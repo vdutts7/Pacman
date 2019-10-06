@@ -164,9 +164,9 @@ class InferenceModule:
         given gameState. You must first place the ghost in the gameState, using
         setGhostPosition below.
         """
-        if index == None:
+        if index is None:
             index = self.index - 1
-        if agent == None:
+        if agent is None:
             agent = self.ghostAgent
         return self.getPositionDistributionHelper(gameState, pos, index, agent)
 
@@ -175,7 +175,12 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        if noisyDistance is None:
+            return float(ghostPosition == jailPosition)
+        if ghostPosition == jailPosition:
+            return float(noisyDistance is None)
+        estimatedDistance = manhattanDistance(pacmanPosition, ghostPosition)
+        return busters.getObservationProbability(noisyDistance, estimatedDistance)
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
