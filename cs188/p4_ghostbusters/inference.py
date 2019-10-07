@@ -19,6 +19,8 @@ import game
 
 from util import manhattanDistance, raiseNotDefined
 
+from cs188.p4_ghostbusters.pacman import GameState
+
 
 class DiscreteDistribution(dict):
     """
@@ -75,7 +77,7 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        total = sum(self.values())
+        total = self.total()
         if total == 0:
             return
         for key in self:
@@ -272,7 +274,7 @@ class ExactInference(InferenceModule):
             self.beliefs[p] = 1.0
         self.beliefs.normalize()
 
-    def observeUpdate(self, observation, gameState):
+    def observeUpdate(self, observation, gameState: GameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
 
@@ -288,8 +290,13 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+        beliefs = self.beliefs   # P(ghostPosition[t] | noisyDist[1:t])
+        for position in self.allPositions:
+            pr_noisy_given_real = self.getObservationProb(
+                observation, pacmanPosition, position, jailPosition)
+            beliefs[position] *= pr_noisy_given_real
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
@@ -302,7 +309,21 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        beliefs = self.beliefs
+        new_beliefs = DiscreteDistribution()
+        pr_transition = {}
+
+        # Transition function:
+        # pr_transition[from][to] = P(nextPosition=to | currentPosition=from)
+        for position in self.allPositions:
+            pr_transition[position] = self.getPositionDistribution(gameState, position)
+
+        for position in self.allPositions:
+            new_beliefs[position] = sum(
+                pr_transition[prevPosition][position] * beliefs[prevPosition]
+                for prevPosition in beliefs
+            )
+        self.beliefs = new_beliefs
 
     def getBeliefDistribution(self):
         return self.beliefs
