@@ -8,29 +8,28 @@ at the UC Berkeley. I'm using the material from
 - [x] Project 1 - Search
 - [x] Project 2 - Multi-agent Search
 - [x] Project 3 - MDPs and Reinforcement Learning 
-- [ ] Project 4 - Ghostbusters
+- [x] Project 4 - Ghostbusters (HMMs, Particle filtering, Dynamic Bayes Nets)
 - [ ] Project 5 - Machine learning 
 
-#### Notes
-- Each project has its own folder. 
-The output of the auto-grader for each project is saved as `autograder.out` inside the corresponding folder.
+##### Notes
+- Each project has his own folder. 
+For each project, the output of the auto-grader is saved as `autograder.out` 
+inside the project folder.
 
 - I added a `setup.py` file and installed the root folder as a package (in editable mode) with 
 
         pip install -e . 
     
-    I did it for not having import issues when importing stuff between projects (and
-    because PyCharm is happier this way).
+  I did it for not having import issues when importing stuff from past projects or from
+  my_utils.py (and because PyCharm is happier this way).
 
-- For the sake of clarity, my additional comments in the code starts with 
-the character `§`. I started doing this when I wrote in sections not meant
-to be written by the student, but I then began doing this for all comments...
+- For the sake of clarity, my additional comments in the code start with the 
+  character `§`.
 
 
 ### Project 1 - Graph search - Implementation Notes
-
-Project 1 is about applying graph search algorithms to PacMan (with no adversaries in the maze):
-https://inst.eecs.berkeley.edu/~cs188/fa18/project1.html
+[Project 1](https://inst.eecs.berkeley.edu/~cs188/fa18/project1.html) is about applying 
+graph search algorithms to PacMan (with no adversaries in the maze)
 
 #### Question 1-4 - Search algorithms
 All the search algorithms variants were implemented using a single 
@@ -79,8 +78,14 @@ are cached in a dictionary to save computation.
 In the auto-grading problem, the number of expanded nodes using the above heuristic (719) was way less than the maximum 
 required for the maximum score (7000).
 
+### Project 2 - Multi-Agent Search
+[Project 2](https://inst.eecs.berkeley.edu/~cs188/fa18/project2.html) is about using 
+MiniMax ed ExpectiMax to implement a PacMan agent.
 
 ### Project 3 - MDPs and Reinforcement Learning
+[Project 3](https://inst.eecs.berkeley.edu/~cs188/fa18/project3.html) is about developing 
+a PacMan agent using reinforcement learning.
+
 As an extra exercise, I wrote an additional feature extractor for PacMan called 
 `CustomExtractor` that is a slightly modified version of the provided `SimpleExtractor`;
 it just encourages the agent to eat adjacent scared ghosts instead of avoiding them as 
@@ -91,3 +96,20 @@ maze, run:
 
     python pacman.py -p ApproximateQAgent -a extractor=CustomExtractor -x 50 -n 60 -l mediumClassic 
 
+
+### Project 4 - Ghostbusters
+[Project 4](https://inst.eecs.berkeley.edu/~cs188/fa18/project4.html#Q4) is about 
+Hidden Markov Models and Particle Filtering.
+
+Problem: the maze is populated with `numGhosts` _invisible_ ghosts and we want PacMan to
+catch them all; we don't know where the ghosts are precisely, but we are given some noisy
+distances from PacMan to them.
+
+The assignment can be divided into 3 parts:
+1. in part 1, the problem is solved using the forward algorithm for HMM (exact inference);
+2. in part 2, the problem is solved using approximate inference powered by particle filtering;
+3. in part 3, ghosts don't move independently from each other, so the model is described
+   by a Dynamic Bayes Net; the problem is still solved by using particle filtering;
+   the difference is that rather than using `numGhosts` independent `ParticleFilter`s,
+   we now have a single `JointParticleFilter` whose particles are tuples of positions 
+   (one for each ghost).
