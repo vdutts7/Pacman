@@ -14,6 +14,8 @@
 
 import itertools
 import random
+from collections import Counter
+
 import busters
 import game
 
@@ -348,11 +350,13 @@ class ParticleFilter(InferenceModule):
         distributed across positions in order to ensure a uniform prior. Use
         self.particles for the list of particles.
         """
-        self.particles = []
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        numCopies = self.numParticles // len(self.legalPositions)
+        numRemaining = self.numParticles % len(self.legalPositions)
+        self.particles = self.legalPositions * numCopies
+        self.particles += self.legalPositions[:numRemaining]
 
-    def observeUpdate(self, observation, gameState):
+    def observeUpdate(self, observation, gameState: GameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
 
@@ -365,7 +369,18 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+        beliefs = self.getBeliefDistribution()
+        for particle in beliefs:
+            beliefs[particle] *= self.getObservationProb(observation,
+                                                         pacmanPosition,
+                                                         particle, jailPosition)
+        if beliefs.total() == 0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles = random.choices(list(beliefs), k=self.numParticles,
+                                            weights=list(beliefs.values()))
 
     def elapseTime(self, gameState):
         """
@@ -373,7 +388,13 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        particles = []
+        for particle in self.particles:
+            nextPositionDistribution = self.getPositionDistribution(gameState, particle)
+            nextPosition = nextPositionDistribution.sample()
+            particles.append(nextPosition)
+        self.particles = particles
+
 
     def getBeliefDistribution(self):
         """
@@ -384,7 +405,9 @@ class ParticleFilter(InferenceModule):
         This function should return a normalized distribution.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        distribution = DiscreteDistribution(Counter(self.particles))
+        distribution.normalize()
+        return distribution
 
 
 class JointParticleFilter(ParticleFilter):
