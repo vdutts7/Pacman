@@ -9,7 +9,7 @@ at the UC Berkeley. I'm using the material from
 - [x] Project 2 - Multi-agent Search
 - [x] Project 3 - MDPs and Reinforcement Learning 
 - [x] Project 4 - Ghostbusters (HMMs, Particle filtering, Dynamic Bayes Nets)
-- [ ] Project 5 - Machine learning 
+- [ ] ~~Project 5 - Machine learning~~ (I won't do this because it is about neural networks, topic I've already studied at a deeper level)
 
 ##### Notes
 - Each project has his own folder. 
