@@ -2,7 +2,7 @@
 
 This repository contains my solutions to the projects of the course 
 of "Artificial Intelligence" (CS188) taught by Pieter Abbeel and Dan Klein
-at the UC Berkeley. I'm using the material from 
+at the UC Berkeley. I used the material from 
 [Fall 2018](https://inst.eecs.berkeley.edu/~cs188/fa18/).
 
 - [x] Project 1 - Search
