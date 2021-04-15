@@ -12,7 +12,7 @@ at the UC Berkeley. I used the material from
 - [ ] ~~Project 5 - Machine learning~~ (I won't do this because it is about neural networks, topic I've already studied at a deeper level)
 
 ##### Notes
-- Each project has his own folder. 
+- Each project is in its own folder. 
 For each project, the output of the auto-grader is saved as `autograder.out` 
 inside the project folder.
 
@@ -21,7 +21,8 @@ inside the project folder.
         pip install -e . 
     
   I did it for not having import issues when importing stuff from past projects or from
-  my_utils.py (and because PyCharm is happier this way).
+  my_utils.py (and because PyCharm is happier this way). **EDIT:** probably, marking the
+  folder as "source folder" would do the job as well.
 
 - For the sake of clarity, my additional comments in the code start with the 
   character `§`.
